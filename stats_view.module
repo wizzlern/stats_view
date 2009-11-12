@@ -61,7 +61,8 @@ function stats_view_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       // additional information.
 
       //For "view", $a3 passes in the $teaser parameter from node_view().
-      if (!$a3) {
+      //Additionally, check for the node-type-setting.
+      if (!$a3 && variable_get('stats_view_'. $node->type, 0)) {
         $node->content['stats_view'] = array(
           '#value' => stats_view_stats_test_page(),
           '#weight' => 4,
@@ -69,6 +70,23 @@ function stats_view_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       }
 
       break;
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function stats_view_form_alter(&$form, $form_state, $form_id) {
+  // Only inject a new checkbox when we have a conten-type-setting page.
+  // This logic only returns true for such forms.
+  if ($form_id == 'node_type_form' && isset($form['identity']['type'])) {
+    $form['workflow']['stats_view'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Render statistics on nodes of this type?'),
+      '#default_value' => variable_get('stats_view_'. $form['#node_type']->type, 0),
+      // Drupal automgically stores a variable called
+      // {form_item_id}_{content_type_name} on submit.
+    );
   }
 }
 
