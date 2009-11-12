@@ -35,6 +35,12 @@ function stats_view_menu() {
     'access arguments' => array('administer stats_view'),
   );
 
+  $items['stats_view_test'] = array(
+    'title' => t('View statistics for a test-path'),
+    'page callback' => 'stats_view_stats_test_page',
+    'access arguments' => array('access usage statistics'),
+  );
+
   return $items;
 }
 
@@ -47,7 +53,7 @@ function stats_view_settings($form_state) {
     '#title' => t('Amount of entries to show'),
     '#description' => t('Provide the amount of statistics-entries that you want to show in the block with the articles.'),
     '#default_value' => variable_get('stats_view_amount_entries', 5),
-    '#weight' => -100,
+    '#weight' => 1,
   );
 
   return system_settings_form($form);
@@ -66,3 +72,50 @@ function stats_view_settings_validate($form, &$form_state) {
   }
 }
 
+/**
+ * Get a list of statistic items in the database.
+ * We do not render any lists in this function. That would not be MVC.
+ * Instead we only speak to the database. Nothing more. 
+ * @param $path string Optional string of the path where we want the statistics for.
+ *  If left empty, we determine the path ourselves and take the current path.
+ */
+function stats_view_stats_for_page($path = '') {
+  $stats = array(); //It is good practice to always return the same (type of) value.
+
+  // First see if we must determine the path.
+  if (empty($path)) {
+    // If we have not path defined, we simply check the Superglobal $GET.
+    // In Drupal the "path", whether or not you have clean-urls, is set in $GET['q'].
+    // However, tipically you would use the function arg() to get a part from this path.
+    $path = $_GET['q']; //No need to escape. Drupals databaselayer does that for us.
+  }
+
+  // A replacement-token for a string is %s and for an integer %d.
+  // Drupal will remove potential dangerous
+  // SQL-injection stuff from this string. It will not sanitize it against XSS
+  // exploits though!
+  $result = db_query("SELECT * FROM accesslog a WHERE path LIKE '%s' ORDER BY timestamp DESC LIMIT %d", $path, variable_get('stats_view_amount_entries', 5));
+
+  while ($row = db_fetch_object($result)) {
+    $stats[] = $row;
+  }
+
+  return $stats;
+}
+
+/**
+ * Test-page: a menu-callback that contains a call to stats_view_stats_for_page()
+ * to check for the path "admin"
+ */
+function stats_view_stats_test_page() {
+  $out = ''; 
+
+  // Hardcoded to see accesslogs for path "admin".
+  $stats = stats_view_stats_for_page('admin');
+
+  foreach ($stats as $row) {
+    $out .= "at ". format_date($row->timestamp). " host ". check_plain($row->hostname) ." visited ". check_plain($row->path) ."<br />";
+  }
+
+  return $out;
+}
