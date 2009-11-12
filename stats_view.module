@@ -4,7 +4,7 @@
 /**
  * @file
  * Display usage statistics in various places
- * @author Bèr Kessel <ber@webschuur.com>
+ * @author Bèr Kessels <ber@webschuur.com>
  * @link http://wizzlern.nl
  * @package stats_view
  */
@@ -19,19 +19,57 @@ function stats_view_menu() {
   $items = array();
 
   $items['admin/settings/stats_view'] = array(
-    'title' => 'Bekijk statistieken',
-    'page callback' => 'stats_view_settings',
-    'access arguments' => array('access administration pages'), //Komen we later op terug.
+    'title' => 'View statistics',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('stats_view_settings'),
+    'access arguments' => array('access administration pages'),
   );
 
   return $items;
 }
 
+
+
 /**
  * Callback for hook_menu().
- * 'page callback' => 'stats_view_settings' causes this function to be ran
- * for output on the page admin/settings/stats_view.
  */
-function stats_view_settings() {
-  return 'Hier komt de configuratie';
+function stats_view_settings($form_state) {
+//print_r($form_state);
+//var_dump($form_state);
+//dpr($form_state);
+  $form['stats_view_amount_entries'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Amount of entries to show',
+    '#description' => 'Provide the amount of statistics-entries that you want to show in the block with the articles.',
+    '#default_value' => variable_get('stats_view_amount_entries', 5),
+    '#weight' => -100,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
 }
+
+/**
+ * Validation callback for stats_view_settings form.
+ */
+function stats_view_settings_validate($form, &$form_state) {
+  //print_r($form_state);
+  if (!(int)$form_state['values']['stats_view_amount_entries']) {
+    form_set_error('stats_view_amount_entries', 'amount must be a round number');
+  }
+  elseif ($form_state['values']['stats_view_amount_entries'] <= 0) {
+    form_set_error('stats_view_amount_entries', 'amount must be greater then 0');
+  }
+}
+
+/**
+ * Validation callback for stats_view_settings form.
+ */
+function stats_view_settings_submit($form, &$form_state) {
+  variable_set('stats_view_amount_entries', $form_state['values']['stats_view_amount_entries']);
+}
+
