@@ -1,0 +1,5 @@
+; $Id$
+name = Statistiekenweergave
+description = Statistiekenweergave rendert bestaande statistieken op handige plekken
+core = 6.x
+dependencies[] = statistics
