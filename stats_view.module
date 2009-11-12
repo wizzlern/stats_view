@@ -13,44 +13,44 @@
   Hook Implementations
 ------------------------------------------------------------------ */
 /**
+ * Implementation of hook_perm().
+ */
+function stats_view_perm() {
+  return array(
+    'administer stats_view',
+    'access usage statistics',
+  );
+}
+
+/**
  * Implementation of hook_menu().
  */
 function stats_view_menu() {
   $items = array();
 
   $items['admin/settings/stats_view'] = array(
-    'title' => 'View statistics',
+    'title' => t('View statistics'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('stats_view_settings'),
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer stats_view'),
   );
 
   return $items;
 }
 
-
-
 /**
- * Callback for hook_menu().
+ * callback for hook_menu().
  */
 function stats_view_settings($form_state) {
-//print_r($form_state);
-//var_dump($form_state);
-//dpr($form_state);
   $form['stats_view_amount_entries'] = array(
     '#type' => 'textfield',
-    '#title' => 'Amount of entries to show',
-    '#description' => 'Provide the amount of statistics-entries that you want to show in the block with the articles.',
+    '#title' => t('Amount of entries to show'),
+    '#description' => t('Provide the amount of statistics-entries that you want to show in the block with the articles.'),
     '#default_value' => variable_get('stats_view_amount_entries', 5),
     '#weight' => -100,
   );
 
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-  );
-
-  return $form;
+  return system_settings_form($form);
 }
 
 /**
@@ -64,12 +64,5 @@ function stats_view_settings_validate($form, &$form_state) {
   elseif ($form_state['values']['stats_view_amount_entries'] <= 0) {
     form_set_error('stats_view_amount_entries', 'amount must be greater then 0');
   }
-}
-
-/**
- * Validation callback for stats_view_settings form.
- */
-function stats_view_settings_submit($form, &$form_state) {
-  variable_set('stats_view_amount_entries', $form_state['values']['stats_view_amount_entries']);
 }
 
