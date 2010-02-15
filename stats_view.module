@@ -18,8 +18,14 @@
 function stats_view_menu() {
   $items = array();
 
-  $items['admin/settings/stats_view'] = array(
+  $items['stats_view'] = array(
     'title' => 'Bekijk statistieken',
+    'page callback' => 'stats_view_list',
+    'access arguments' => array('access administration pages'), //Komen we later op terug.
+  );
+  
+  $items['admin/settings/stats_view'] = array(
+    'title' => 'Stats view configuration',
     'page callback' => 'stats_view_settings',
     'access arguments' => array('access administration pages'), //Komen we later op terug.
   );
@@ -29,8 +35,17 @@ function stats_view_menu() {
 
 /**
  * Callback for hook_menu().
+ * 'page callback' => 'stats_view_list' causes this function to be ran
+ * for output on the page /stats_view.
+ */
+function stats_view_list() {
+  return 'Hier komt de lijst met recente logs';
+}
+
+/**
+ * Callback for hook_menu().
  * 'page callback' => 'stats_view_settings' causes this function to be ran
- * for output on the page admin/settings/stats_view.
+ * for output on the page /admin/settings/stats_view.
  */
 function stats_view_settings() {
   return 'Hier komt de configuratie';
