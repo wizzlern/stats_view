@@ -18,9 +18,9 @@
 function stats_view_menu() {
   $items = array();
 
-  $items['admin/settings/stats_view'] = array(
-    'title' => 'Bekijk statistieken',
-    'page callback' => 'stats_view_settings',
+  $items['piraten'] = array(
+    'title' => 'Piraat zegt',
+    'page callback' => 'stats_view_hello',
     'access arguments' => array('access administration pages'), //Komen we later op terug.
   );
 
@@ -32,6 +32,6 @@ function stats_view_menu() {
  * 'page callback' => 'stats_view_settings' causes this function to be ran
  * for output on the page admin/settings/stats_view.
  */
-function stats_view_settings() {
-  return 'Hier komt de configuratie';
+function stats_view_hello() {
+  return "Arrr, wecome on board, Ye Drupaleers. Let us get some modules de'eloped else ye'll ne'er get me buried booty!";
 }
