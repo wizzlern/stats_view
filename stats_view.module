@@ -26,7 +26,7 @@ function stats_view_menu() {
   
   $items['admin/settings/stats_view'] = array(
     'title' => t('View statistics'),
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'stats_view_settings',
     'access arguments' => array('access administration pages'),
   );
 
@@ -37,28 +37,7 @@ function stats_view_menu() {
  * callback for hook_menu().
  */
 function stats_view_settings($form_state) {
-  $form['stats_view_amount_entries'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Amount of entries to show'),
-    '#description' => t('Provide the amount of statistics-entries that you want to show in the block with the articles.'),
-    '#default_value' => variable_get('stats_view_amount_entries', 5),
-    '#weight' => 1,
-  );
-
-  return system_settings_form($form);
-}
-
-/**
- * Validation callback for stats_view_settings form.
- */
-function stats_view_settings_validate($form, &$form_state) {
-  //print_r($form_state);
-  if (!(int)$form_state['values']['stats_view_amount_entries']) {
-    form_set_error('stats_view_amount_entries', 'amount must be a round number');
-  }
-  elseif ($form_state['values']['stats_view_amount_entries'] <= 0) {
-    form_set_error('stats_view_amount_entries', 'amount must be greater then 0');
-  }
+  return "Hier komen de settings";
 }
 
 /**
