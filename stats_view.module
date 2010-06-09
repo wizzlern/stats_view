@@ -89,7 +89,7 @@ function stats_view_settings_form_validate($form, &$form_state) {
 }
 
 /**
- * Validation callback for stats_view_settings form.
+ * Submit callback for stats_view_settings form.
  */
 function stats_view_settings_form_submit($form, &$form_state) {
   variable_set('stats_view_amount_entries', (int)$form_state['values']['stats_view_amount_entries']);
