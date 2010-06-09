@@ -67,7 +67,6 @@ function stats_view_settings_validate($form, &$form_state) {
 function stats_view_list() {
   $out = ''; 
 
-  // Hardcoded to see accesslogs for path "admin".
   $stats_database_result = db_query("SELECT * FROM accesslog a WHERE path LIKE '%s' ORDER BY timestamp DESC LIMIT %d", $path, 10);
 
   while ($row = db_fetch_object($stats_database_result)) {
