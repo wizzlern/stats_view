@@ -67,11 +67,12 @@ function stats_view_settings_validate($form, &$form_state) {
 function stats_view_list() {
   $out = ''; 
 
-  $stats_database_result = db_query("SELECT * FROM accesslog a WHERE path LIKE '%s' ORDER BY timestamp DESC LIMIT %d", $path, 10);
+  // @TODO: fetch the items from the database, using a SQL select query and the appropriate functions.
 
-  while ($row = db_fetch_object($stats_database_result)) {
-    $out .= "at ". format_date($row->timestamp). " host ". check_plain($row->hostname) ." visited ". check_plain($row->path) ."<br />";
-  }
+  // @TODO: iterate over the database-result and fetch each row, one a time.
+    // @TODO Make a string from the data in that row, in the form of:
+    //       "at $timestamp, host $hostname, visited $path"
+    //       concatenate that to the $out variable.
 
   return $out;
 }
