@@ -43,39 +43,31 @@ function stats_view_settings() {
  */
 function stats_view_settings_form() {
 
-  $form['stats_view_amount_entries'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Amount of entries to show',
-    '#description' => 'Provide the amount of statistics-entries that you want to show in the block with the articles.',
-    '#default_value' => variable_get('stats_view_amount_entries', 5),
-    '#weight' => -100,
-  );
+  // @TODO form item with:
+  //        type: textfield,
+  //        title 'Amount of entries to show'
+  //        description: 'Provide the amount of statistics-entries that you want to show in the block with the articles.'
+  //      ' default_value: 5
+  //        weight: -100
 
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-  );
+  // @TODO form item with:
+  //        type: submit
+  //        text on the button: 'Save'
 
   return $form;
 }
 
 /**
+ * @TODO: introduce the validate function for stats_view_settings_form
  * Validation callback for stats_view_settings form.
  */
-function stats_view_settings_form_validate($form, &$form_state) {
-  //print_r($form_state);
-  if (!(int)$form_state['values']['stats_view_amount_entries']) {
-    form_set_error('stats_view_amount_entries', 'amount must be a round number');
-  }
-  elseif ($form_state['values']['stats_view_amount_entries'] <= 0) {
-    form_set_error('stats_view_amount_entries', 'amount must be greater then 0');
-  }
-}
+// @TODO the function should check if the value a user provide is
+//       a number, if not, set an error explaining the user he/she needs to enter a round number.
+//       positive, if not, set an error explaining the user he/she needs to enter a positive number.
 
 /**
+ * @TODO: introduce the submit handler function for stats_view_settings_form
  * Submit callback for stats_view_settings form.
  */
-function stats_view_settings_form_submit($form, &$form_state) {
-  variable_set('stats_view_amount_entries', (int)$form_state['values']['stats_view_amount_entries']);
-}
+// @TODO, in that function, use variable_set() to store the amount of entries to be shown.
 
