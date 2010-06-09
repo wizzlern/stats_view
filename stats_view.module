@@ -58,9 +58,7 @@ function stats_view_settings() {
  * Callback for drupal_get_form in stats_view_settings.
  */
 function stats_view_settings_form() {
-//print_r($form_state);
-//var_dump($form_state);
-//dpr($form_state);
+
   $form['stats_view_amount_entries'] = array(
     '#type' => 'textfield',
     '#title' => 'Amount of entries to show',
