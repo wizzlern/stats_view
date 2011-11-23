@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * @file
+ * Display usage statistics in various places.
+ * 
+ * @author Bèr Kessels <ber@webschuur.com>
+ * @author Erik Stielstra <info@erikstielstra.nl>
+ * @link http://wizzlern.nl
+ * @package stats_view
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function stats_view_menu() {
+  $items = array();
+
+  // Declare URL 'stats_view'.
+  // A page call to example.com/stats_view will make Drupal call the
+  // function defined by 'page callback'.
+  $items['stats_view'] = array(
+    'title' => 'View Access Statistics',
+    'page callback' => 'stats_view_page',
+    'access callback' => array(TRUE), // Access for all. We will discuss this later.
+  );
+
+  // All URLs are defined in this hook as a structured array. The result of
+  // this hook is cached by Drupal to aid performance. The menu tree
+  // is usually pretty large.
+  return $items;
+}
+
+/**
+ * Menu callback: Page with access statistics.
+ */
+function stats_view_page() {
+
+  // Some basis output, to help you see that the module works.
+  return 'Access statistics will de displayed here ...';
+}
+

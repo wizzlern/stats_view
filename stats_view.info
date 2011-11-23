@@ -1,5 +1,0 @@
-; $Id$
-name = Stats view
-description = Statistiekenweergave: rendert bestaande statistieken op handige plekken
-core = 6.x
-dependencies[] = statistics

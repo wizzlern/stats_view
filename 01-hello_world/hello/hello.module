@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * @file
+ * Hello world module.
+ * 
+ * @author Erik Stielstra <info@erikstielstra.nl>
+ * @link http://wizzlern.nl
+ * @package hello
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function hello_menu() {
+  $items = array();
+
+  // We define URL 'hello'. The site will now respond to this URL
+  // by calling the function defined in 'page callback' and display
+  // the returned HTML als page content.
+
+  // The page title and description are defined by 'title' and 'desctription'.
+  // Of course this can be overridden, but that's too much for now.
+
+  // Access to the page is controlled by access control and requires
+  // the user to have the permission defined by 'access arguments'.
+  // This is only a fundamental method of access control, more tricks to follow.
+  $items['hello'] = array(
+    'title' => 'Hello World',
+    'description' => 'Drupal greets you!',
+    'page callback' => 'hello_page',
+    'access arguments' => array('access content'),
+  );
+
+  return $items;
+}
+
+/**
+ * Menu callback: Hello World page.
+ */
+function hello_page() {
+  // Basic page output.
+
+  // This output could include HTML tags too, but in Drupal it is
+  // considered bad practice to concatenate HTML-tags here.
+  // We'll tell you about theming later.
+  return t('Hello world! This is Drupal calling ...');
+}

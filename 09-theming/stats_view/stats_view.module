@@ -1,0 +1,221 @@
+<?php
+
+/**
+ * @file
+ * Display usage statistics in various places.
+ * 
+ * @author Bèr Kessels <ber@webschuur.com>
+ * @author Erik Stielstra <info@erikstielstra.nl>
+ * @link http://wizzlern.nl
+ * @package stats_view
+ */
+
+/* -----------------------------------------------------------------
+ * Hooks
+ * ------------------------------------------------------------------ */
+
+/**
+ * Implements hook_permission().
+ */
+function stats_view_permission() {
+  return array(
+    'administer stats_view' => array(
+      'title' => t('Administer Stats View'),
+    ),
+    'access usage statistics' => array(
+      'title' => t('Access to usage statistics'),
+      'description' => t('Access to usage statistics on pages and in a block.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function stats_view_menu() {
+  $items = array();
+
+  $items['admin/config/system/stats_view'] = array(
+    'title' => 'View statistics',
+    'description' => 'Control how access statistics are displayed.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('stats_view_settings'),
+    'access arguments' => array('administer stats_view'),
+    'weight' => -14.9, // List this just below the Statistics config page.
+  );
+
+  $items['stats_view'] = array(
+    'title' => 'View Access Statistics',
+    'page callback' => 'stats_view_page',
+    'access arguments' => array('access usage statistics'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation fof hook_theme()
+ *
+ * Register a module (or theme's) theme implementations.
+ * Modules and themes implementing this return an array of arrays. The key to 
+ * each sub-array is the internal name of the hook, and the array contains info 
+ * about the hook.
+ */
+function stats_view_theme($existing, $type, $theme, $path) {
+
+  $theme_functions =  array(
+    'stats_view_stats_list' => array(
+      'template' => 'stats_view_stats_list',
+      'variables' => array('raw_stats' => array()),
+    ),
+  );
+
+  return $theme_functions;
+}
+
+/* -----------------------------------------------------------------
+ * Callbacks and block contents
+ * ------------------------------------------------------------------ */
+
+/**
+ * Menu callback: Page with access statistics.
+ */
+function stats_view_page() {
+  $output = '';
+
+  // Using the wildcard ('%') in hook menu paths discrete URL arguments
+  // can be passed to a function. But in this case we want to pass zero, one or 
+  // more URL arguments to the page. e.g. node/123.
+  // We get the right $path data by stripping the first argument ('stats_view')
+  // from the current path.
+  $args = arg();
+  unset($args[0]);
+  $path = implode('/', $args);
+
+  // Get access data from the database.
+  $stats = stats_view_get_stats($path);
+
+  return theme('stats_view_stats_list', array('raw_stats' => $stats));
+}
+
+/**
+ * Menu callback: Stats View settings page.
+ */
+function stats_view_settings($form_state) {
+  $form['stats_view_max_entries'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of entries to show'),
+    '#description' => t('Provide the number of statistics-entries that you want to show in the block with the articles.'),
+    '#default_value' => variable_get('stats_view_max_entries', 5),
+    '#weight' => 1,
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Validation callback: stats_view_settings form.
+ */
+function stats_view_settings_validate($form, &$form_state) {
+  // Validate if the input is an integer and if the integer is greater than zero.
+  if (!is_numeric($form_state['values']['stats_view_max_entries'])) {
+    form_set_error('stats_view_max_entries', t('Amount must be a round number.'));
+  }
+  elseif ($form_state['values']['stats_view_max_entries'] <= 0) {
+    form_set_error('stats_view_max_entries', t('Amount must be greater then 0.'));
+  }
+}
+
+/* -----------------------------------------------------------------
+ * Database and API
+ * ------------------------------------------------------------------ */
+
+/**
+ * Build a formatted list of statistics of specified path.
+ *
+ * @param $path
+ *   Path to build a list of access statistics of.
+ * @return
+ *   HTML list of access statistics.
+ */
+function stats_view_stats_list($path = '') {
+  $stats = stats_view_get_stats($path);
+
+  return theme('stats_view_stats_list', array('raw_stats' => $stats));
+}
+
+/**
+ * Get access statistic from the database.
+ *
+ * @param $path
+ *   Path to get the access statistics. Default: get statistics of all paths.
+ * @return
+ *   array of access data objects.
+ */
+function stats_view_get_stats($path = '') {
+  // Use drupal_static() to cache the database results in a static variable.
+  // This improves performance when stats_view_get_stats() gets called
+  // multiple times during the same page load.
+  // Using drupal_static() over a static variable allows the variable to be reset.
+  $stats = &drupal_static(__FUNCTION__);
+  
+  // If this function was called before during this page call with the same
+  // $path we skip this part and use the data stored in static memory cache.
+  // If it is the first time, lets go ahead and hit the database.
+  if (!isset($stats[$path])) {
+    $query = db_select('accesslog', 'a')
+      ->fields('a', array('title', 'path', 'hostname', 'uid', 'timestamp'))
+      ->orderBy('timestamp', 'DESC')
+      ->range(0, variable_get('stats_view_max_entries', 5));
+
+    // When a path is specified only the statistics of this path are loaded.
+    // If no path is specified statistics of all pages are loaded.
+    // The dynamic query method makes is very easy to conditionally extend
+    // or modify the query. Here we add a condition method if a path is specified.
+    if (!empty($path)) {
+
+    // $path is un-cleaned data directly taken from $_GET['q'].
+    // Because Drupals databaselayer escapes the data used in parameters
+    // there is no need to escape it before feeding it into database functions.
+
+    // Drupal will automatically remove potential dangerous SQL-injection stuff
+    // from input like condition and range parameters.
+    // It will not sanitize it against XSS exploits though!
+      $query->condition('path', $path);
+    }
+
+    // Get an indexed array of data objects.
+    $stats[$path] = $query->execute()->fetchAll();
+  }
+
+  return $stats[$path];
+}
+
+
+/* -----------------------------------------------------------------
+ * Theming
+ * ------------------------------------------------------------------ */
+
+/**
+ * Preprocess function to prepare data for a list of statistics entries.
+ * 
+ * @ingroup Theme
+ */
+function template_preprocess_stats_view_stats_list(&$variables) {
+  $items = array();
+  $stats = $variables['raw_stats'];
+
+  // Data passed to a template function must be sanatized in the preprocess function.
+  // If data is intentionally not sanatized make sure the difference is clear.
+  // Good practice is to use 'raw' as part of the variable name.
+
+  foreach ($stats as $row) {
+    $items[] = t('At @date host %host visited @path.', array('@date' => format_date($row->timestamp), '%host' => $row->hostname, '@path' => $row->path));
+  }
+
+  // @todo Convert to rederable array.
+  $variables['statistics'] = $items ? theme('item_list', array('items' => $items)) : '';
+  $variables['empty_text'] = t('No statistics available.');
+  
+}
+

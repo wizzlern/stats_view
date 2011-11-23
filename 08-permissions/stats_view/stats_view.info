@@ -1,0 +1,6 @@
+name = "Stats View"
+description = "Display existing statistics in various places."
+core = 7.x
+dependencies[] = statistics
+
+configure = admin/config/system/stats_view

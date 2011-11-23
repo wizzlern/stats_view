@@ -1,0 +1,120 @@
+<?php
+
+/**
+ * @file
+ * Display usage statistics in various places.
+ * 
+ * @author Bèr Kessels <ber@webschuur.com>
+ * @author Erik Stielstra <info@erikstielstra.nl>
+ * @link http://wizzlern.nl
+ * @package stats_view
+ */
+
+
+/**
+ * Implements hook_menu().
+ */
+function stats_view_menu() {
+  $items = array();
+
+  // A call to 'stats_view' will return all statistics on one page.
+  // This definition only handles the defined path. To be able to respond
+  // to child paths, they need to be defined separately.
+  $items['stats_view'] = array(
+    'title' => 'View Access Statistics',
+    'page callback' => 'stats_view_page',
+    'page arguments' => array(''),
+    'access callback' => array(TRUE), // Access for all. We will discuss this later.
+  );
+
+  // A call to 'stats_view/example' will return all statistics of calls to 'example'.
+  // '%' is a wildcard for the second parameter of the URL.
+  // This definition of 'page arguments' will pass the second URL parameter
+  // to the 'page callback' function. 0 = first, 1 = second.
+  $items['stats_view/%'] = array(
+    'title' => 'View Access Statistics',
+    'page callback' => 'stats_view_page',
+    'page arguments' => array(1),
+    'access callback' => array(TRUE), // Access for all. We will discuss this later.
+  );
+
+  return $items;
+}
+
+/**
+ * Menu callback: Page with access statistics.
+ */
+function stats_view_page($path) {
+  $output = '';
+
+  // Get access data from the database.
+  $stats = stats_view_get_stats($path);
+  
+  // This way to output the content is not 'the Drupal way'. But just quick and drity.
+  // Only to prove that we have the right data at the right place.
+  // More refinement will follow.
+  foreach ($stats as $row) {
+    $output .= 'At ' . format_date($row->timestamp) . ' host ' . $row->hostname . ' visited ' . $row->path . "<br />\n";
+  }
+
+  return $output;
+}
+
+/**
+ * Get access statistic from the database.
+ *
+ * @param $path
+ *   Path to get the access statistics. Default: get statistics of all paths.
+ * @return
+ *   array of access data objects.
+ */
+function stats_view_get_stats($path = '') {
+  // Use drupal_static() to cache the database results in a static variable.
+  // This improves performance when stats_view_get_stats() gets called
+  // multiple times during the same page load.
+  // Using drupal_static() over a static variable allows the variable to be reset.
+  $stats = &drupal_static(__FUNCTION__);
+  
+  // If this function was called before during this page call with the same
+  // $path we skip this part and use the data stored in static memory cache.
+  // If it is the first time, lets go ahead and hit the database.
+  if (!isset($stats[$path])) {
+    // Static select query to get access log data from the database.
+    // Note: this is a simplified version and does not give the same data
+    // as the dynamic function below. If $path == '' we expect ALL records,
+    // not just the records where 'path' is empty.
+    // This is an example where the dynamic query method is preferred.
+    /*
+    $query = db_query("SELECT title, path, hostname, uid, timestamp
+                       FROM {accesslog}
+                       WHERE path = :path
+                       ORDER BY timestamp DESC",
+                       array(':path' => $path));
+    */
+
+    $query = db_select('accesslog', 'a')
+      ->fields('a', array('title', 'path', 'hostname', 'uid', 'timestamp'))
+      ->orderBy('timestamp', 'DESC');
+
+    // When a path is specified only the statistics of this path are loaded.
+    // If no path is specified statistics of all pages are loaded.
+    // The dynamic query method makes is very easy to conditionally extend
+    // or modify the query. Here we add a condition method if a path is specified.
+    if (!empty($path)) {
+
+    // $path is un-cleaned data directly taken from $_GET['q'].
+    // Because Drupals databaselayer escapes the data used in parameters
+    // there is no need to escape it before feeding it into database functions.
+
+    // Drupal will automatically remove potential dangerous SQL-injection stuff
+    // from input like condition and range parameters.
+    // It will not sanitize it against XSS exploits though!
+      $query->condition('path', $path);
+    }
+
+    // Get an indexed array of data objects.
+    $stats[$path] = $query->execute()->fetchAll();
+  }
+
+  return $stats[$path];
+}

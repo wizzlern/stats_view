@@ -1,0 +1,139 @@
+<?php
+
+/**
+ * @file
+ * Display usage statistics in various places.
+ * 
+ * @author Bèr Kessels <ber@webschuur.com>
+ * @author Erik Stielstra <info@erikstielstra.nl>
+ * @link http://wizzlern.nl
+ * @package stats_view
+ */
+
+
+/**
+ * Implements hook_menu().
+ */
+function stats_view_menu() {
+  $items = array();
+
+  $items['admin/config/stats_view'] = array(
+    'title' => 'View statistics',
+    'description' => 'Control how access statistics are displayed.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('stats_view_settings'),
+    'access callback' => TRUE, // Access for all. We will discuss this later.
+  );
+
+  $items['stats_view'] = array(
+    'title' => 'View Access Statistics',
+    'page callback' => 'stats_view_page',
+    'access callback' => array(TRUE), // Access for all. We will discuss this later.
+  );
+
+  return $items;
+}
+
+/**
+ * Menu callback: Page with access statistics.
+ */
+function stats_view_page() {
+  $output = '';
+
+  // Using the wildcard ('%') in hook menu paths discrete URL arguments
+  // can be passed to a function. But in this case we want to pass zero, one or 
+  // more URL arguments to the page. e.g. node/123.
+  // We get the right $path data by stripping the first argument ('stats_view')
+  // from the current path.
+  $args = arg();
+  unset($args[0]);
+  $path = implode('/', $args);
+
+  // Get access data from the database.
+  $stats = stats_view_get_stats($path);
+  
+  // This way to output the content is not 'the Drupal way'. But just quick and drity.
+  // Only to prove that we have the right data at the right place.
+  // More refinement will follow.
+  foreach ($stats as $row) {
+    $output .= 'At ' . format_date($row->timestamp) . ' host ' . $row->hostname . ' visited ' . $row->path . "<br />\n";
+  }
+
+  return $output;
+}
+
+/**
+ * Menu callback: Stats View settings page.
+ */
+function stats_view_settings($form_state) {
+  $form['stats_view_max_entries'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of entries to show'),
+    '#description' => t('Provide the number of statistics-entries that you want to show in the block with the articles.'),
+    '#default_value' => variable_get('stats_view_max_entries', 5),
+    '#weight' => 1,
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Validation callback: stats_view_settings form.
+ */
+function stats_view_settings_validate($form, &$form_state) {
+  // Validate if the input is an integer and if the integer is greater than zero.
+  if (!is_numeric($form_state['values']['stats_view_max_entries'])) {
+    form_set_error('stats_view_max_entries', t('Amount must be an integer number.'));
+  }
+  elseif ($form_state['values']['stats_view_max_entries'] <= 0) {
+    form_set_error('stats_view_max_entries', t('Amount must be greater then 0.'));
+  }
+}
+
+/**
+ * Get access statistic from the database.
+ *
+ * @param $path
+ *   Path to get the access statistics. Default: get statistics of all paths.
+ * @return
+ *   array of access data objects.
+ */
+function stats_view_get_stats($path = '') {
+  // Use drupal_static() to cache the database results in a static variable.
+  // This improves performance when stats_view_get_stats() gets called
+  // multiple times during the same page load.
+  // Using drupal_static() over a static variable allows the variable to be reset.
+  $stats = &drupal_static(__FUNCTION__);
+  
+  // If this function was called before during this page call with the same
+  // $path we skip this part and use the data stored in static memory cache.
+  // If it is the first time, lets go ahead and hit the database.
+  if (!isset($stats[$path])) {
+    $query = db_select('accesslog', 'a')
+      ->fields('a', array('title', 'path', 'hostname', 'uid', 'timestamp'))
+      ->orderBy('timestamp', 'DESC')
+      ->range(0, variable_get('stats_view_max_entries', 5));
+
+    // When a path is specified only the statistics of this path are loaded.
+    // If no path is specified statistics of all pages are loaded.
+    // The dynamic query method makes is very easy to conditionally extend
+    // or modify the query. Here we add a condition method if a path is specified.
+    if (!empty($path)) {
+
+    // $path is un-cleaned data directly taken from $_GET['q'].
+    // Because Drupals databaselayer escapes the data used in parameters
+    // there is no need to escape it before feeding it into database functions.
+
+    // Drupal will automatically remove potential dangerous SQL-injection stuff
+    // from input like condition and range parameters.
+    // It will not sanitize it against XSS exploits though!
+      $query->condition('path', $path);
+    }
+
+    // Get an indexed array of data objects.
+    $stats[$path] = $query->execute()->fetchAll();
+  }
+
+  return $stats[$path];
+}
+
