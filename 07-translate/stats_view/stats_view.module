@@ -21,12 +21,13 @@
 function stats_view_menu() {
   $items = array();
 
-  $items['admin/config/stats_view'] = array(
+  $items['admin/config/system/stats_view'] = array(
     'title' => 'View statistics',
     'description' => 'Control how access statistics are displayed.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('stats_view_settings'),
     'access callback' => array(TRUE), // Access for all. We will discuss this later.
+    'weight' => -14.9, // List this just below the Statistics config page.
   );
 
   $items['stats_view'] = array(
