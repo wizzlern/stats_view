@@ -135,7 +135,7 @@ function stats_view_theme($existing, $type, $theme, $path) {
 
   $theme_functions =  array(
     'stats_view_stats_list' => array(
-      'template' => 'stats_view_stats_list',
+      'template' => 'stats-view-stats-list',
       'variables' => array('raw_stats' => array()),
     ),
     'stats_view_log_list' => array(
