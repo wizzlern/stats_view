@@ -111,7 +111,7 @@ function stats_view_theme($existing, $type, $theme, $path) {
   $theme_functions =  array(
     'stats_view_stats_list' => array(
       'template' => 'stats-view-stats-list',
-      'variables' => array('raw_stats' => array()),
+      'variables' => array('stats_raw' => array()),
     ),
     'stats_view_log_list' => array(
       'variables' => array('stats' => array()),
@@ -144,7 +144,7 @@ function stats_view_page() {
   // Get access data from the database.
   $stats = stats_view_get_stats($path);
 
-  return theme('stats_view_stats_list', array('raw_stats' => $stats));
+  return theme('stats_view_stats_list', array('stats_raw' => $stats));
 }
 
 /**
@@ -283,7 +283,7 @@ function theme_stats_view_log_list($variables) {
  */
 function template_preprocess_stats_view_stats_list(&$variables) {
   $items = array();
-  $stats = $variables['raw_stats'];
+  $stats = $variables['stats_raw'];
 
   // Data passed to a template function must be sanatized in the preprocess function.
   // If data is intentionally not sanatized make sure the difference is clear.

@@ -5,7 +5,7 @@
  *
  * Variables available:
  * - $statistics: 
- * - $raw_stats: Access log object.
+ * - $stats_raw: Access log object.
  *   Note: this raw data! It is not safe to display without escaping or sanatizing.
  *     'title'     = Title of visited page.
  *     'path'      = Path of visited page.
