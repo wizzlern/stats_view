@@ -209,6 +209,8 @@ function template_preprocess_stats_view_stats_list(&$variables) {
   // If data is intentionally not sanatized make sure the difference is clear.
   // Good practice is to use 'raw' as part of the variable name.
 
+  $variables['most_recent'] = t('Most recent visit: @time', array('@time' => format_date($stats[0]->timestamp)));
+
   foreach ($stats as $row) {
     $items[] = t('At @date host %host visited @path.', array('@date' => format_date($row->timestamp), '%host' => $row->hostname, '@path' => $row->path));
   }
@@ -216,6 +218,5 @@ function template_preprocess_stats_view_stats_list(&$variables) {
   // @todo Convert to rederable array.
   $variables['statistics'] = $items ? theme('item_list', array('items' => $items)) : '';
   $variables['empty_text'] = t('No statistics available.');
-  
 }
 

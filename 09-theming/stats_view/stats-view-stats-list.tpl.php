@@ -5,6 +5,8 @@
  *
  * Variables available:
  * - $statistics: 
+ * - $empty_text: Alternative text if no statistics are available.
+ * - $most_recent: Text of most recent visit.
  * - $stats_raw: Access log object.
  *   Note: this raw data! It is not safe to display without escaping or sanatizing.
  *     'title'     = Title of visited page.
@@ -16,7 +18,7 @@
  * @see template_preprocess_stats_view_page()
  */
 ?>
-
+<p><?php print $most_recent ?></p>
 <div class="stats-view clearfix">
   <?php if ($statistics): ?>
     <?php print $statistics ?>
